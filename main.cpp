@@ -188,7 +188,6 @@ int main(){
         solve->print_cycle();
         delete solve;
     }
-
     writingfile.close();
 
     return 0;
