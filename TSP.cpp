@@ -178,7 +178,7 @@ private:
 
         cost = 0;
         for(int i = 1; i < (int)cycle.size(); i++){
-            cost += dij(vertices[i], vertices[i-1]);
+            cost += dij(vertices[cycle[i]], vertices[cycle[i-1]]);
         }
     }
 
@@ -201,11 +201,11 @@ private:
 
 
 int main(){
-    int n=6;
+    int n = 99;
 //    cin >> n;
 
     ofstream writingfile;
-    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/Bateria2/saida.txt");
+    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/Bateria1/big_cases/saida.txt");
 
     /* vertices variables */
     unsigned int total_vertices;
@@ -215,7 +215,7 @@ int main(){
     /* vertices variables */
 
     for(int i = 1; i <= n; i++){
-        string filename = "/home/igor/Documentos/travelling-salesman-problem/Bateria2/ent";
+        string filename = "/home/igor/Documentos/travelling-salesman-problem/Bateria1/big_cases/ent";
         if(i < 10)
             filename += "0" + to_string(i) + ".txt";
         else
