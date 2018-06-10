@@ -4,16 +4,16 @@ typedef pair<float,float> pp;
 
 
 struct HeapElement{
-    int weight, min_parent, index;
-    HeapElement(int wweight, int mmin_parent, int iindex): weight(wweight), min_parent(mmin_parent), index(iindex) {};
+    int weight, parent, index;
+    HeapElement(int wweight, int pparent, int iindex): weight(wweight), parent(pparent), index(iindex) {};
     bool operator<(const HeapElement & x) const {
         if(weight < x.weight)
             return true;
         if(weight > x.weight)
             return false;
-        if(min_parent < x.min_parent)
+        if(parent < x.parent)
             return true;
-        if(min_parent > x.min_parent)
+        if(parent > x.parent)
             return false;
         return index < x.index;
     }
@@ -150,15 +150,15 @@ private:
         while(!heap.empty()){
             HeapElement top = heap.extractMin();
 
-            if(top.index != top.min_parent){
-                mst[top.index].push_back(top.min_parent);
-                mst[top.min_parent].push_back(top.index);
+            if(top.index != top.parent){
+                mst[top.index].push_back(top.parent);
+                mst[top.parent].push_back(top.index);
             }
 
             for(int i = 1; i <= total_vertices; i++){
                 if(i != top.index and heap.hasVertex(i)){
                     if((dij(vertices[i], vertices[top.index]) < heap.heapVertex(i).weight)
-                       or (dij(vertices[i], vertices[top.index]) == heap.heapVertex(i).weight and top.index < heap.heapVertex(i).min_parent)){
+                       or (dij(vertices[i], vertices[top.index]) == heap.heapVertex(i).weight and top.index < heap.heapVertex(i).parent)){
                         HeapElement he(dij(vertices[i], vertices[top.index]), top.index, i);
                         heap.modify(heap.getVertex(i), he);
                     }
@@ -201,11 +201,11 @@ private:
 
 
 int main(){
-    int n=1;
+    int n=6;
 //    cin >> n;
 
     ofstream writingfile;
-    writingfile.open("saida.txt");
+    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/Bateria2/saida.txt");
 
     /* vertices variables */
     unsigned int total_vertices;
@@ -215,8 +215,11 @@ int main(){
     /* vertices variables */
 
     for(int i = 1; i <= n; i++){
-        string filename;
-        filename = "/home/igor/Documentos/travelling-salesman-problem/ent01.txt";//"ent"  + (i<10)?"0":"" + to_string(i) + ".txt";
+        string filename = "/home/igor/Documentos/travelling-salesman-problem/Bateria2/ent";
+        if(i < 10)
+            filename += "0" + to_string(i) + ".txt";
+        else
+            filename += to_string(i) + ".txt";
 
         ifstream readingfile(filename);
 
@@ -232,8 +235,11 @@ int main(){
         readingfile.close();
 
         Solution * solve = new Solution(vertices,total_vertices);
-        printf("%d\n",solve->getCost());
-        solve->print_cycle();
+
+        writingfile << solve->getCost() << endl;
+
+//        printf("%d\n",solve->getCost());
+//        solve->print_cycle();
         delete solve;
     }
     writingfile.close();

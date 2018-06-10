@@ -4,16 +4,16 @@
 
 
   struct HeapElement{
-    int weight, min_parent, index;
-    HeapElement(int wweight, int mmin_parent, int iindex): weight(wweight), min_parent(mmin_parent), index(iindex) {};
+    int weight, parent, index;
+    HeapElement(int wweight, int mmin_parent, int iindex): weight(wweight), parent(mmin_parent), index(iindex) {};
     bool operator<(const HeapElement & x) const {
       if(weight < x.weight)
         return true;
       if(weight > x.weight)
           return false;
-      if(min_parent < x.min_parent)
+      if(parent < x.parent)
         return true;
-      if(min_parent > x.min_parent)
+      if(parent > x.parent)
         return false;
       return index < x.index;
     }
@@ -128,7 +128,7 @@
 
       while(!heap.empty()){
         HeapElement top = heap.extractMin();
-        printf("%d, %d, %d\n", top.weight, top.min_parent, top.index);
+        printf("%d, %d, %d\n", top.weight, top.parent, top.index);
       }
       return 0;
   }
