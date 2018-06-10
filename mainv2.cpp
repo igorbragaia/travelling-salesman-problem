@@ -25,8 +25,8 @@ class Heap{
 public:
   Heap(int n){
       size = 0;
-      heap.resize(n, HeapElement(-1,-1,-1));
-      positions.resize(n,-1);
+      heap.resize(n + 1, HeapElement(-1,-1,-1));
+      positions.resize(n + 1,-1);
   };
 
   HeapElement push(int weight, int min_parent, int index){
@@ -35,7 +35,9 @@ public:
   };
 
   HeapElement extractMin(){
-    if(size == 1){
+    if(size < 1){
+      throw invalid_argument("Heap underflow");
+    } else if(size == 1){
       HeapElement top = heap[1];
       positions[top.index] = -1;
       size--;
@@ -45,8 +47,6 @@ public:
       positions[top.index] = -1;
       modify(1, heap[size--]);
       return top;
-    } else {
-      throw invalid_argument("Heap underflow");
     }
   };
 
@@ -75,7 +75,7 @@ public:
   }
 
   int getVertex(int k){
-      return positions[k];
+    return positions[k];
   }
 
   HeapElement heapVertex(int k){
@@ -141,13 +141,16 @@ private:
 
     void prim(int start){
       mst.resize(total_vertices+1);
-      Heap heap(total_vertices);
+      Heap heap((int)total_vertices+1);
       for(int i = 1; i<= total_vertices; i++){
+        // printf("%d %d %d\n", dij(vertices[start], vertices[i]), start, i);
         heap.push(dij(vertices[start], vertices[i]), start, i);
       }
 
+
       while(!heap.empty()){
         HeapElement top = heap.extractMin();
+        printf("top %d\n", top.index);
 
         mst[top.index].push_back(top.min_parent);
         mst[top.min_parent].push_back(top.index);
@@ -156,6 +159,7 @@ private:
           if(i != top.index and heap.hasVertex(i)){
             if((dij(vertices[i], vertices[top.index]) < heap.heapVertex(i).weight)
                or (dij(vertices[i], vertices[top.index]) == heap.heapVertex(i).weight and top.index < heap.heapVertex(i).min_parent)){
+              printf("## %d %d\n", heap.heapVertex(i).index, i);
               HeapElement he(dij(vertices[i], vertices[top.index]), top.index, i);
               heap.modify(heap.getVertex(i), he);
             }
@@ -206,7 +210,8 @@ int main(){
 
     /* vertices variables */
     unsigned int total_vertices;
-    int vertice, x, y;
+    int vertice;
+    float x, y;
     vector<pp> vertices;
     /* vertices variables */
 

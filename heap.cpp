@@ -24,8 +24,8 @@
   public:
     Heap(int n){
         size = 0;
-        heap.resize(n, HeapElement(-1,-1,-1));
-        positions.resize(n,-1);
+        heap.resize(n + 1, HeapElement(-1,-1,-1));
+        positions.resize(n + 1,-1);
     };
 
     HeapElement push(int weight, int min_parent, int index){
@@ -34,7 +34,9 @@
     };
 
     HeapElement extractMin(){
-      if(size == 1){
+      if(size < 1){
+        throw invalid_argument("Heap underflow");
+      } else if(size == 1){
         HeapElement top = heap[1];
         positions[top.index] = -1;
         size--;
@@ -44,8 +46,6 @@
         positions[top.index] = -1;
         modify(1, heap[size--]);
         return top;
-      } else {
-        throw invalid_argument("Heap underflow");
       }
     };
 
@@ -74,7 +74,7 @@
     }
 
     int getVertex(int k){
-        return positions[k];
+      return positions[k];
     }
 
     HeapElement heapVertex(int k){
@@ -84,10 +84,10 @@
     bool empty(){
       return !(size > 0);
     }
+    vector<int>positions;
   private:
     int size;
     vector<HeapElement>heap;
-    vector<int>positions;
 
     void sift(int k){
       int esq = 2*k, dir = 2*k+1, menor = k;
@@ -110,26 +110,23 @@
 
 
   int main(){
-      Heap heap;
-      heap = *(new Heap(20));
+      Heap heap(20);
 
-      heap.push(29, 29, 76);
-      heap.push(15, 88, 11);
-      heap.push(11, 36, 16);
-      heap.push(85, 38, 70);
-      heap.push(28, 84, 35);
-      heap.push(77, 42, 78);
-      heap.push(77, 42, 14);
-      heap.push(88, 68, 85);
-      heap.push(37, 74, 35);
-      heap.push(88, 19, 77);
+      heap.push(0, 1, 1);
+      heap.push(2, 1, 2);
+      heap.push(3, 1, 3);
+      heap.push(2, 1, 4);
+      heap.push(3, 1, 5);
+      heap.push(3, 1, 6);
+      heap.push(4, 1, 7);
+      heap.push(4, 1, 8);
 
-      HeapElement hp(15, 75, 76);
-      heap.modify(1, hp);
-      HeapElement hp2(15, 88, 12);
-      heap.modify(1, hp2);
+      for(int i = 1; i <= 20; i++){
+        printf("%d ", heap.positions[i]);
+      }
 
-      while(heap.getSize()){
+
+      while(!heap.empty()){
         HeapElement top = heap.extractMin();
         printf("%d, %d, %d\n", top.weight, top.min_parent, top.index);
       }
