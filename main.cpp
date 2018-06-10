@@ -1,7 +1,6 @@
 #include<bits/stdc++.h>
 using namespace std;
 typedef pair<float,float> pp;
-#define INF 2<<29
 
 
 struct HeapElement{
@@ -25,14 +24,14 @@ class Heap{
 public:
     Heap(int n){
         size = 0;
-        heap.resize(n + 1, HeapElement(-1,-1,-1));
-        positions.resize(n + 1,-1);
-    };
+        heap.resize(((unsigned int)(n+1)), HeapElement(-1,-1,-1));
+        positions.resize(((unsigned int)(n+1)),-1);
+    }
 
     HeapElement push(int weight, int min_parent, int index){
         HeapElement el(weight, min_parent, index);
         modify(++size, el);
-    };
+    }
 
     HeapElement extractMin(){
         if(size < 1){
@@ -48,7 +47,7 @@ public:
             modify(1, heap[size--]);
             return top;
         }
-    };
+    }
 
     void modify(int k, HeapElement el){
         if(k < 1 or k > size){
@@ -84,12 +83,12 @@ public:
     }
 
     bool empty(){
-        return !(size > 0);
+        return size <= 0;
     }
+private:
     int size;
     vector<HeapElement>heap;
     vector<int>positions;
-private:
 
     void sift(int k){
         int esq = 2*k, dir = 2*k+1, menor = k;
@@ -141,17 +140,15 @@ private:
     int cost;
 
     void prim(int start){
-        mst.resize(total_vertices+1);
-        Heap heap((int)total_vertices+1);
+        mst.resize((unsigned int)(total_vertices+1));
+        Heap heap((unsigned int)(total_vertices+1));
         for(int i = 1; i<= total_vertices; i++){
-            // printf("%d %d %d\n", dij(vertices[start], vertices[i]), start, i);
             heap.push(dij(vertices[start], vertices[i]), start, i);
         }
 
 
         while(!heap.empty()){
             HeapElement top = heap.extractMin();
-            printf("top %d\n", top.index);
 
             if(top.index != top.min_parent){
                 mst[top.index].push_back(top.min_parent);
@@ -162,7 +159,6 @@ private:
                 if(i != top.index and heap.hasVertex(i)){
                     if((dij(vertices[i], vertices[top.index]) < heap.heapVertex(i).weight)
                        or (dij(vertices[i], vertices[top.index]) == heap.heapVertex(i).weight and top.index < heap.heapVertex(i).min_parent)){
-                        printf("## %d %d\n", heap.heapVertex(i).index, i);
                         HeapElement he(dij(vertices[i], vertices[top.index]), top.index, i);
                         heap.modify(heap.getVertex(i), he);
                     }
@@ -172,8 +168,8 @@ private:
     }
 
     void create_cycle(int start){
-        visited.resize(total_vertices+1);
-        for(int i = 1; i <= (int)total_vertices; i++)
+        visited.resize((unsigned int)(total_vertices+1));
+        for(int i = 1; i <= total_vertices; i++)
             visited[i] = false;
 
         visited[start] = true;
