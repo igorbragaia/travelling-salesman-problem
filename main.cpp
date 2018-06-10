@@ -1,31 +1,115 @@
 #include<bits/stdc++.h>
 using namespace std;
-typedef pair<int,int> pp;
+typedef pair<float,float> pp;
 #define INF 2<<29
 
 
-struct pq_element{
-    int weight, vertex, parent;
-    pq_element(int wweight, int vvertex, int pparent): weight(wweight), vertex(vvertex), parent(pparent) {};
-    bool operator>(const pq_element & x) const {
-        return weight > x.weight;
-    }
-};
-
-
-struct compare {
-    compare(int minMSTEl) { 
-        minMSTElement = minMSTEl;
-    }
-    bool operator () (pq_element x, pq_element y) { 
-        if(x.parent == minMSTElement and y.parent != minMSTElement)
+struct HeapElement{
+    int weight, min_parent, index;
+    HeapElement(int wweight, int mmin_parent, int iindex): weight(wweight), min_parent(mmin_parent), index(iindex) {};
+    bool operator<(const HeapElement & x) const {
+        if(weight < x.weight)
             return true;
-        if(x.parent != minMSTElement and y.parent == minMSTElement)
+        if(weight > x.weight)
             return false;
-        return x.vertex < y.vertex;
+        if(min_parent < x.min_parent)
+            return true;
+        if(min_parent > x.min_parent)
+            return false;
+        return index < x.index;
     }
-    int minMSTElement;
 };
+
+
+class Heap{
+public:
+    Heap(int n){
+        size = 0;
+        heap.resize(n + 1, HeapElement(-1,-1,-1));
+        positions.resize(n + 1,-1);
+    };
+
+    HeapElement push(int weight, int min_parent, int index){
+        HeapElement el(weight, min_parent, index);
+        modify(++size, el);
+    };
+
+    HeapElement extractMin(){
+        if(size < 1){
+            throw invalid_argument("Heap underflow");
+        } else if(size == 1){
+            HeapElement top = heap[1];
+            positions[top.index] = -1;
+            size--;
+            return top;
+        } else if(size > 1){
+            HeapElement top = heap[1];
+            positions[top.index] = -1;
+            modify(1, heap[size--]);
+            return top;
+        }
+    };
+
+    void modify(int k, HeapElement el){
+        if(k < 1 or k > size){
+            throw invalid_argument("Index error");
+        } else {
+            heap[k] = el;
+            positions[heap[k].index] = k;
+
+            while(k > 1 and heap[k] < heap[k/2]){
+                HeapElement aux = heap[k];
+                heap[k] = heap[k/2];
+                heap[k/2] = aux;
+
+                positions[heap[k].index] = k;
+                positions[heap[k/2].index] = k/2;
+
+                k = k/2;
+            }
+            sift(k);
+        }
+    }
+
+    bool hasVertex(int k){
+        return positions[k] != -1;
+    }
+
+    int getVertex(int k){
+        return positions[k];
+    }
+
+    HeapElement heapVertex(int k){
+        return heap[positions[k]];
+    }
+
+    bool empty(){
+        return !(size > 0);
+    }
+    int size;
+    vector<HeapElement>heap;
+    vector<int>positions;
+private:
+
+    void sift(int k){
+        int esq = 2*k, dir = 2*k+1, menor = k;
+        if(esq <= size and heap[esq] < heap[menor])
+            menor = esq;
+        if(dir <= size and heap[dir] < heap[menor])
+            menor = dir;
+        if(menor != k){
+            HeapElement aux = heap[k];
+            heap[k] = heap[menor];
+            heap[menor] = aux;
+
+            positions[heap[k].index] = k;
+            positions[heap[menor].index] = menor;
+
+            sift(menor);
+        }
+    };
+};
+
 
 class Solution{
 public:
@@ -33,33 +117,59 @@ public:
         total_vertices = v;
         vertices = vs;
         int start = 1;
-        create_mst(start);
+        prim(start);
         create_cycle(start);
     }
 
-    int cost(){
-        int answer = 0;
-        for(pair<pp,int> el:cycle){
-            answer += el.second;
-        }
-        return answer;
+    void print_cycle(){
+        for(int i = 0; i < (int)cycle.size(); i++)
+            printf("%d ", cycle[i]);
+        printf(("\n"));
     }
 
-    void print_cycle(){
-        cout << "path:" << endl;
-        for(pair<pp,int> el:cycle){
-            cout << el.first.first << " - " << el.first.second << endl;
-        }
-        cout << endl << "MST cost: " << cost() << endl;
+    int getCost(){
+        return cost;
     }
 private:
-    unsigned int total_vertices;
+    int total_vertices;
     vector<pp>vertices;
-    map<pp,int>edges;
-    vector<int>preorder;
-    vector<pair<pp,int>>cycle;
-    vector<vector<pair<int,int>>>mst;
+
+    vector<vector<int>>mst;
+
     vector<bool>visited;
+    vector<int>cycle;
+    int cost;
+
+    void prim(int start){
+        mst.resize(total_vertices+1);
+        Heap heap((int)total_vertices+1);
+        for(int i = 1; i<= total_vertices; i++){
+            // printf("%d %d %d\n", dij(vertices[start], vertices[i]), start, i);
+            heap.push(dij(vertices[start], vertices[i]), start, i);
+        }
+
+
+        while(!heap.empty()){
+            HeapElement top = heap.extractMin();
+            printf("top %d\n", top.index);
+
+            if(top.index != top.min_parent){
+                mst[top.index].push_back(top.min_parent);
+                mst[top.min_parent].push_back(top.index);
+            }
+
+            for(int i = 1; i <= total_vertices; i++){
+                if(i != top.index and heap.hasVertex(i)){
+                    if((dij(vertices[i], vertices[top.index]) < heap.heapVertex(i).weight)
+                       or (dij(vertices[i], vertices[top.index]) == heap.heapVertex(i).weight and top.index < heap.heapVertex(i).min_parent)){
+                        printf("## %d %d\n", heap.heapVertex(i).index, i);
+                        HeapElement he(dij(vertices[i], vertices[top.index]), top.index, i);
+                        heap.modify(heap.getVertex(i), he);
+                    }
+                }
+            }
+        }
+    }
 
     void create_cycle(int start){
         visited.resize(total_vertices+1);
@@ -67,89 +177,28 @@ private:
             visited[i] = false;
 
         visited[start] = true;
-        create_cycle_path(1);
+        create_cycle_path(start);
+        cycle.push_back(start);
 
-        for(int i = 0; i < (int)preorder.size() - 1; i++)
-            cycle.push_back(make_pair(make_pair(preorder[i], preorder[i+1]), edges[make_pair(min(preorder[i], preorder[i+1]),max(preorder[i], preorder[i+1]))]));
-        int lastVertex = preorder[(int)preorder.size()-2];
-        cycle.push_back(make_pair(make_pair(preorder[lastVertex], 1), dij(vertices[1],vertices[lastVertex])));
+        cost = 0;
+        for(int i = 1; i < (int)cycle.size(); i++){
+            cost += dij(vertices[i], vertices[i-1]);
+        }
     }
 
     void create_cycle_path(int vertex){
-        preorder.push_back(vertex);
+        cycle.push_back(vertex);
         sort(mst[vertex].begin(), mst[vertex].end());
-        for(pair<int,int> neighbor:mst[vertex])
-            if(!visited[neighbor.second]){
-                visited[neighbor.second] = true;
-                create_cycle_path(neighbor.second);
-            }
-    }
-
-    void create_mst(int start){
-        vector<int>key(total_vertices+1,INF);
-        vector<int>parent(total_vertices+1,-1);
-        vector<bool>inMST(total_vertices+1,false);
-        priority_queue<pq_element,vector<pq_element>,greater<pq_element>> pq;
-
-        key[start] = 0;
-        pq_element el(key[start], start, -1);
-        pq.push(el);
-
-        while(!pq.empty()){
-            int weight = pq.top().weight;
-
-            vector<pq_element> elements;
-            while(!pq.empty() and weight == pq.top().weight){
-                pq_element front = pq.top();
-                pq.pop();
-
-                if(!inMST[front.vertex]){
-                    elements.push_back(front);
-                }
-            }
-
-            if((int)elements.size() > 0 ){
-                int minMSTElement = -1;
-                for(int i = 1; i <= total_vertices and minMSTElement == -1; i++)
-                    if(inMST[i]){
-                        minMSTElement = i;
-                    }
-                sort(elements.begin(), elements.end(), compare(minMSTElement));
-
-                pq_element front = elements[0];
-                for(int i = 1; i < (int)elements.size(); i++)
-                    pq.push(elements[i]);
-
-                if(front.vertex != start){
-                    inMST[front.vertex] = true;
-                    parent[front.vertex] = front.parent;
-                }
-
-                for(int i = 1; i <= total_vertices; i++)
-                    if(i != front.vertex){
-                        int distance = dij(vertices[i], vertices[front.vertex]);
-                        if(!inMST[i] and key[i] >= distance){
-                            key[i] = distance;
-                            pq_element current_el(key[i], i, front.vertex);
-                            pq.push(current_el);
-                        }
-                    }
-            }
-        }
-
-        mst.resize(total_vertices+1);
-        for(int i = 1; i <= total_vertices; i++)
-            if(parent[i] != -1){
-                int distance = dij(vertices[i], vertices[parent[i]]);
-                edges[make_pair(min(i,parent[i]),max(i,parent[i]))] = distance;
-                mst[i].push_back(make_pair(distance, parent[i]));
-                mst[parent[i]].push_back(make_pair(distance, i));
+        for(int neighbor:mst[vertex])
+            if(!visited[neighbor]){
+                visited[neighbor] = true;
+                create_cycle_path(neighbor);
             }
     }
 
     static int dij(pp i, pp j){
-        int xd = i.first - j.first, yd = i.second - j.second;
-        double x = sqrt(xd*xd + yd*yd);
+        float xd = i.first - j.first, yd = i.second - j.second;
+        float x = sqrt(xd*xd + yd*yd);
         return (int)(x + 0.5);
     }
 };
@@ -164,13 +213,14 @@ int main(){
 
     /* vertices variables */
     unsigned int total_vertices;
-    int vertice, x, y;
+    int vertice;
+    float x, y;
     vector<pp> vertices;
     /* vertices variables */
 
     for(int i = 1; i <= n; i++){
         string filename;
-        filename = "ent01.txt";//"ent"  + (i<10)?"0":"" + to_string(i) + ".txt";
+        filename = "/home/igor/Documentos/travelling-salesman-problem/ent01.txt";//"ent"  + (i<10)?"0":"" + to_string(i) + ".txt";
 
         ifstream readingfile(filename);
 
@@ -182,9 +232,11 @@ int main(){
             readingfile >> vertice >> x >> y;
             vertices[vertice] = make_pair(x,y);
         }
+
         readingfile.close();
 
         Solution * solve = new Solution(vertices,total_vertices);
+        printf("%d\n",solve->getCost());
         solve->print_cycle();
         delete solve;
     }
