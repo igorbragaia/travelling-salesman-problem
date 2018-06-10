@@ -28,7 +28,7 @@ public:
         positions.resize(((unsigned int)(n+1)),-1);
     }
 
-    HeapElement push(int weight, int min_parent, int index){
+    void push(int weight, int min_parent, int index){
         HeapElement el(weight, min_parent, index);
         modify(++size, el);
     }
@@ -143,17 +143,15 @@ private:
         mst.resize((unsigned int)(total_vertices+1));
         Heap heap((unsigned int)(total_vertices+1));
         for(int i = 1; i<= total_vertices; i++){
-            heap.push(dij(vertices[start], vertices[i]), start, i);
+            if(i != start)
+                heap.push(dij(vertices[start], vertices[i]), start, i);
         }
-
 
         while(!heap.empty()){
             HeapElement top = heap.extractMin();
 
-            if(top.index != top.parent){
-                mst[top.index].push_back(top.parent);
-                mst[top.parent].push_back(top.index);
-            }
+            mst[top.index].push_back(top.parent);
+            mst[top.parent].push_back(top.index);
 
             for(int i = 1; i <= total_vertices; i++){
                 if(i != top.index and heap.hasVertex(i)){
@@ -194,18 +192,18 @@ private:
 
     static int dij(pp i, pp j){
         float xd = i.first - j.first, yd = i.second - j.second;
-        float x = sqrt(xd*xd + yd*yd);
+        float x = sqrtf(xd*xd + yd*yd);
         return (int)(x + 0.5);
     }
 };
 
 
 int main(){
-    int n = 99;
+    int n = 6;
 //    cin >> n;
 
     ofstream writingfile;
-    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/Bateria1/big_cases/saida.txt");
+    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/saida.txt");
 
     /* vertices variables */
     unsigned int total_vertices;
@@ -215,7 +213,7 @@ int main(){
     /* vertices variables */
 
     for(int i = 1; i <= n; i++){
-        string filename = "/home/igor/Documentos/travelling-salesman-problem/Bateria1/big_cases/ent";
+        string filename = "/home/igor/Documentos/travelling-salesman-problem/ent";
         if(i < 10)
             filename += "0" + to_string(i) + ".txt";
         else
