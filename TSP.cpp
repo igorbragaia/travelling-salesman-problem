@@ -15,7 +15,7 @@ struct HeapElement{
             return true;
         if(parent > x.parent)
             return false;
-        return index < x.index;
+        return index <= x.index;
     }
 };
 
@@ -34,9 +34,7 @@ public:
     }
 
     HeapElement extractMin(){
-        if(size < 1){
-            throw invalid_argument("Heap underflow");
-        } else if(size == 1){
+        if(size == 1){
             HeapElement top = heap[1];
             positions[top.index] = -1;
             size--;
@@ -143,8 +141,7 @@ private:
         mst.resize((unsigned int)(total_vertices+1));
         Heap heap((unsigned int)(total_vertices+1));
         for(int i = 1; i<= total_vertices; i++){
-            if(i != start)
-                heap.push(dij(vertices[start], vertices[i]), start, i);
+            heap.push(dij(vertices[start], vertices[i]), start, i);
         }
 
         while(!heap.empty()){
@@ -203,7 +200,7 @@ int main(){
 //    cin >> n;
 
     ofstream writingfile;
-    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/saida.txt");
+    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/Bateria2/saida.txt");
 
     /* vertices variables */
     unsigned int total_vertices;
@@ -213,7 +210,7 @@ int main(){
     /* vertices variables */
 
     for(int i = 1; i <= n; i++){
-        string filename = "/home/igor/Documentos/travelling-salesman-problem/ent";
+        string filename = "/home/igor/Documentos/travelling-salesman-problem/Bateria2/ent";
         if(i < 10)
             filename += "0" + to_string(i) + ".txt";
         else
