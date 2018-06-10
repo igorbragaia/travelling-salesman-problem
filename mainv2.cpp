@@ -37,10 +37,12 @@ public:
   HeapElement extractMin(){
     if(size == 1){
       HeapElement top = heap[1];
+      positions[top.index] = -1;
       size--;
       return top;
     } else if(size > 1){
       HeapElement top = heap[1];
+      positions[top.index] = -1;
       modify(1, heap[size--]);
       return top;
     } else {
@@ -53,7 +55,8 @@ public:
       throw invalid_argument("Index error");
     } else {
       heap[k] = el;
-      positions[el.index] = k;
+      positions[heap[k].index] = k;
+
       while(k > 1 and heap[k] < heap[k/2]){
         HeapElement aux = heap[k];
         heap[k] = heap[k/2];
@@ -67,8 +70,20 @@ public:
     }
   }
 
-  int getSize(){
-    return size;
+  bool hasVertex(int k){
+    return positions[k] != -1;
+  }
+
+  int getVertex(int k){
+      return positions[k];
+  }
+
+  HeapElement heapVertex(int k){
+    return heap[positions[k]];
+  }
+
+  bool empty(){
+    return !(size > 0);
   }
 private:
   int size;
@@ -95,51 +110,87 @@ private:
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Solution{
 public:
     Solution(vector<pp>&vs, unsigned int&v){
         total_vertices = v;
         vertices = vs;
         int start = 1;
-        create_mst(start);
+        prim(start);
         create_cycle(start);
     }
 
+    void print_cycle(){
+      for(int i = 0; i < (int)cycle.size(); i++)
+        printf("%d ", cycle[i]);
+      printf(("\n"));
+    }
+
+    int getCost(){
+      return cost;
+    }
 private:
+    int total_vertices;
+    vector<pp>vertices;
+
+    vector<vector<int>>mst;
+
+    vector<bool>visited;
+    vector<int>cycle;
+    int cost;
+
+    void prim(int start){
+      mst.resize(total_vertices+1);
+      Heap heap(total_vertices);
+      for(int i = 1; i<= total_vertices; i++){
+        heap.push(dij(vertices[start], vertices[i]), start, i);
+      }
+
+      while(!heap.empty()){
+        HeapElement top = heap.extractMin();
+
+        mst[top.index].push_back(top.min_parent);
+        mst[top.min_parent].push_back(top.index);
+
+        for(int i = 1; i <= total_vertices; i++){
+          if(i != top.index and heap.hasVertex(i)){
+            if((dij(vertices[i], vertices[top.index]) < heap.heapVertex(i).weight)
+               or (dij(vertices[i], vertices[top.index]) == heap.heapVertex(i).weight and top.index < heap.heapVertex(i).min_parent)){
+              HeapElement he(dij(vertices[i], vertices[top.index]), top.index, i);
+              heap.modify(heap.getVertex(i), he);
+            }
+          }
+        }
+      }
+    }
+
+    void create_cycle(int start){
+        visited.resize(total_vertices+1);
+        for(int i = 1; i <= (int)total_vertices; i++)
+            visited[i] = false;
+
+        visited[start] = true;
+        create_cycle_path(start);
+        cycle.push_back(start);
+
+        cost = 0;
+        for(int i = 1; i < (int)cycle.size(); i++){
+          cost += dij(vertices[i], vertices[i-1]);
+        }
+    }
+
+    void create_cycle_path(int vertex){
+        cycle.push_back(vertex);
+        sort(mst[vertex].begin(), mst[vertex].end());
+        for(int neighbor:mst[vertex])
+            if(!visited[neighbor]){
+                visited[neighbor] = true;
+                create_cycle_path(neighbor);
+            }
+    }
+
     static int dij(pp i, pp j){
-        int xd = i.first - j.first, yd = i.second - j.second;
+        float xd = i.first - j.first, yd = i.second - j.second;
         float x = sqrt(xd*xd + yd*yd);
         return (int)(x + 0.5);
     }
@@ -173,10 +224,11 @@ int main(){
             readingfile >> vertice >> x >> y;
             vertices[vertice] = make_pair(x,y);
         }
-        
+
         readingfile.close();
 
         Solution * solve = new Solution(vertices,total_vertices);
+        printf("%d\n",solve->getCost());
         solve->print_cycle();
         delete solve;
     }

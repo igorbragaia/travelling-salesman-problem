@@ -36,10 +36,12 @@
     HeapElement extractMin(){
       if(size == 1){
         HeapElement top = heap[1];
+        positions[top.index] = -1;
         size--;
         return top;
       } else if(size > 1){
         HeapElement top = heap[1];
+        positions[top.index] = -1;
         modify(1, heap[size--]);
         return top;
       } else {
@@ -67,8 +69,20 @@
       }
     }
 
-    int getSize(){
-      return size;
+    bool hasVertex(int k){
+      return positions[k] != -1;
+    }
+
+    int getVertex(int k){
+        return positions[k];
+    }
+
+    HeapElement heapVertex(int k){
+      return heap[positions[k]];
+    }
+
+    bool empty(){
+      return !(size > 0);
     }
   private:
     int size;
@@ -96,26 +110,27 @@
 
 
   int main(){
-      Heap * heap = new Heap(20);
+      Heap heap;
+      heap = *(new Heap(20));
 
-      heap->push(29, 29, 76);
-      heap->push(15, 88, 11);
-      heap->push(11, 36, 16);
-      heap->push(85, 38, 70);
-      heap->push(28, 84, 35);
-      heap->push(77, 42, 78);
-      heap->push(77, 42, 14);
-      heap->push(88, 68, 85);
-      heap->push(37, 74, 35);
-      heap->push(88, 19, 77);
+      heap.push(29, 29, 76);
+      heap.push(15, 88, 11);
+      heap.push(11, 36, 16);
+      heap.push(85, 38, 70);
+      heap.push(28, 84, 35);
+      heap.push(77, 42, 78);
+      heap.push(77, 42, 14);
+      heap.push(88, 68, 85);
+      heap.push(37, 74, 35);
+      heap.push(88, 19, 77);
 
       HeapElement hp(15, 75, 76);
-      heap->modify(1, hp);
+      heap.modify(1, hp);
       HeapElement hp2(15, 88, 12);
-      heap->modify(1, hp2);
+      heap.modify(1, hp2);
 
-      while(heap->getSize()){
-        HeapElement top = heap->extractMin();
+      while(heap.getSize()){
+        HeapElement top = heap.extractMin();
         printf("%d, %d, %d\n", top.weight, top.min_parent, top.index);
       }
       return 0;
