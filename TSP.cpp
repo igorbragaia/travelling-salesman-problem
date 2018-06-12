@@ -1,4 +1,6 @@
-#include<bits/stdc++.h>
+#include<iostream>
+#include<fstream>
+#include<algorithm>
 using namespace std;
 typedef pair<float,float> pp;
 
@@ -111,11 +113,15 @@ private:
 class Solution{
 public:
     Solution(vector<pp>&vs, unsigned int&v){
-        total_vertices = v;
-        vertices = vs;
-        int start = 1;
-        prim(start);
-        create_cycle(start);
+        if(v > 0){
+            total_vertices = v;
+            vertices = vs;
+            int start = 1;
+            prim(start);
+            create_cycle(start);
+        } else {
+            cost = 0;
+        }
     }
 
     void print_cycle(){
@@ -132,6 +138,7 @@ private:
     vector<pp>vertices;
 
     vector<vector<int>>mst;
+    vector<vector<pair<float,int>> >mst_with_distances;
 
     vector<bool>visited;
     vector<int>cycle;
@@ -147,8 +154,10 @@ private:
         while(!heap.empty()){
             HeapElement top = heap.extractMin();
 
-            mst[top.index].push_back(top.parent);
-            mst[top.parent].push_back(top.index);
+            if(top.index != top.parent){
+                mst[top.index].push_back(top.parent);
+                mst[top.parent].push_back(top.index);
+            }
 
             for(int i = 1; i <= total_vertices; i++){
                 if(i != top.index and heap.hasVertex(i)){
@@ -163,9 +172,15 @@ private:
     }
 
     void create_cycle(int start){
+        mst_with_distances.resize((unsigned int)(total_vertices+1));
         visited.resize((unsigned int)(total_vertices+1));
-        for(int i = 1; i <= total_vertices; i++)
+        for(int i = 1; i <= total_vertices; i++){
             visited[i] = false;
+            for(int neighbor:mst[i]){
+                mst_with_distances[i].push_back(make_pair(dij(vertices[neighbor], vertices[i]),neighbor));
+            }
+            sort(mst_with_distances[i].begin(), mst_with_distances[i].end());
+        }
 
         visited[start] = true;
         create_cycle_path(start);
@@ -179,11 +194,10 @@ private:
 
     void create_cycle_path(int vertex){
         cycle.push_back(vertex);
-        sort(mst[vertex].begin(), mst[vertex].end());
-        for(int neighbor:mst[vertex])
-            if(!visited[neighbor]){
-                visited[neighbor] = true;
-                create_cycle_path(neighbor);
+        for(pair<float,int> neighbor:mst_with_distances[vertex])
+            if(!visited[neighbor.second]){
+                visited[neighbor.second] = true;
+                create_cycle_path(neighbor.second);
             }
     }
 
@@ -196,11 +210,13 @@ private:
 
 
 int main(){
-    int n = 6;
-//    cin >> n;
+    clock_t begin = clock();
+
+    int n;
+    cin >> n;
 
     ofstream writingfile;
-    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/Bateria2/saida.txt");
+    writingfile.open("/home/igor/Documentos/travelling-salesman-problem/Bateria1/big_cases/saida.txt");
 
     /* vertices variables */
     unsigned int total_vertices;
@@ -210,7 +226,7 @@ int main(){
     /* vertices variables */
 
     for(int i = 1; i <= n; i++){
-        string filename = "/home/igor/Documentos/travelling-salesman-problem/Bateria2/ent";
+        string filename = "/home/igor/Documentos/travelling-salesman-problem/Bateria1/big_cases/ent";
         if(i < 10)
             filename += "0" + to_string(i) + ".txt";
         else
@@ -230,14 +246,15 @@ int main(){
         readingfile.close();
 
         Solution * solve = new Solution(vertices,total_vertices);
-
         writingfile << solve->getCost() << endl;
-
-//        printf("%d\n",solve->getCost());
-//        solve->print_cycle();
+        // printf("%d\n",solve->getCost());
+        // solve->print_cycle();
         delete solve;
     }
     writingfile.close();
 
+    clock_t end = clock();
+
+    cout << ((float) (end-begin))/CLOCKS_PER_SEC << endl;
     return 0;
 }
